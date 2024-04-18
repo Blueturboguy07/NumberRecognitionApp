@@ -30,18 +30,37 @@ def read_image(filename):
 @app.route('/predict',methods=['GET','POST'])
 def predict():
     if request.method == 'POST':
+        if 'file' not in request.files:
+            raise FileNotFoundError("File not found in the request.")
+        
         file = request.files['file']
-        if file and allowed_file(file.filename): #Checking file format
-            filename = file.filename
-            file_path = os.path.join('static/images', filename)
-            file.save(file_path)
-            img = read_image(file_path) #prepressing method
-            class_prediction=model.predict(img) 
-            fruit=np.argmax(class_prediction,axis=1)
-            
-            #'fruit' , 'prob' . 'user_image' these names we have seen in predict.html.
-            return render_template('predict.html', fruit = fruit,prob=class_prediction, user_image = file_path)
-        else:
-            return "Unable to read the file. Please check file extension"
+        
+        if file.filename == '':
+            raise ValueError("No file selected.")
+        
+        if not allowed_file(file.filename):
+            raise ValueError("Invalid file format.")
+        
+        filename = file.filename
+        file_path = os.path.join('static/images', filename)
+        file.save(file_path)
+        
+        img = read_image(file_path)  # Assuming this function is defined elsewhere
+        if img is None:
+            os.remove(file_path)  # Remove the file if image reading failed
+            raise ValueError("Failed to read the image.")
+        
+        class_prediction = model.predict(img)  # Assuming 'model' is defined elsewhere
+        if class_prediction is None:
+            os.remove(file_path)  # Remove the file if prediction failed
+            raise ValueError("Failed to predict.")
+        
+        fruit = np.argmax(class_prediction, axis=1)
+        
+        # Render the template with the results
+        return render_template('predict.html', fruit=fruit, prob=class_prediction, user_image=file_path)
+    else:
+        raise ValueError("Invalid request method. Only POST requests are allowed.")
+
 if __name__ == '__main__':
     app.run(debug=True,use_reloader=False, port=8000)
