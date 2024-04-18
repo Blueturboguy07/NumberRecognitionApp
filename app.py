@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request
-from tensorflow.keras.models import load_model
+from keras.models import load_model
 import numpy as np
-from tensorflow.keras.preprocessing.image import load_img
-from tensorflow.keras.applications.vgg16 import preprocess_input
+from keras.preprocessing.image import load_img
+from keras.applications.vgg16 import preprocess_input
 import os
-from tensorflow.keras.preprocessing import image
+from keras.preprocessing import image
 
 app = Flask(__name__)
 model = load_model('NumRecognition.h5')
